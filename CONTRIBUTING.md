@@ -22,7 +22,7 @@ There are 2 main branches:
 2. `dev` branch
 
     * It's our stable developing branch.
-    * Once `dev` has passed iQIYI's internal tests, it will be merged to `master` branch for the next release.
+    * Once `dev` has passed our internal tests, it will be merged to `master` branch for the next release.
     * **Please always submit PR on `dev` branch.**
 
 
