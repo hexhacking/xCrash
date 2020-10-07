@@ -46,14 +46,14 @@ static void xc_test_set_abort_msg()
     xc_dl_t                           *libc          = NULL;
     xcc_util_libc_set_abort_message_t  set_abort_msg = NULL;
 
-    if(xc_common_api_level >= 29) libc = xc_dl_create(XCC_UTIL_LIBC_APEX);
-    if(NULL == libc && NULL == (libc = xc_dl_create(XCC_UTIL_LIBC))) goto end;
-    if(NULL == (set_abort_msg = (xcc_util_libc_set_abort_message_t)xc_dl_sym(libc, XCC_UTIL_LIBC_SET_ABORT_MSG))) goto end;
+    if(xc_common_api_level >= 29) libc = xc_dl_open(XCC_UTIL_LIBC_Q, XC_DL_DYNSYM);
+    if(NULL == libc && NULL == (libc = xc_dl_open(XCC_UTIL_LIBC, XC_DL_DYNSYM))) goto end;
+    if(NULL == (set_abort_msg = (xcc_util_libc_set_abort_message_t)xc_dl_dynsym_func(libc, XCC_UTIL_LIBC_SET_ABORT_MSG))) goto end;
 
     set_abort_msg(XC_TEST_ABORT_MSG);
 
  end:
-    if(NULL != libc) xc_dl_destroy(&libc);
+    if(NULL != libc) xc_dl_close(&libc);
 }
 
 #pragma clang optimize off

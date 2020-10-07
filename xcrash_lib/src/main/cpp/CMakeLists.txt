@@ -15,14 +15,16 @@ add_compile_options(
 
 file(GLOB XCRASH_SRC
         xcrash/*.c
-        common/*.c)
+        common/*.c
+        dl/*.c)
 
 add_library(xcrash SHARED
         ${XCRASH_SRC})
 
 target_include_directories(xcrash PUBLIC
         xcrash
-        common)
+        common
+        dl)
 
 target_link_libraries(xcrash
         log

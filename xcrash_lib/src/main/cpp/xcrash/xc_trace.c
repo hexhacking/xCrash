@@ -139,90 +139,28 @@ static int xc_trace_load_symbols()
     if(xc_trace_symbols_loaded) return xc_trace_symbols_status;
     xc_trace_symbols_loaded = 1;
 
-    if(xc_common_api_level >= 29) libcpp = xc_dl_create(XCC_UTIL_LIBCPP_APEX);
-    if(NULL == libcpp && NULL == (libcpp = xc_dl_create(XCC_UTIL_LIBCPP))) goto end;
-    if(NULL == (xc_trace_libcpp_cerr = xc_dl_sym(libcpp, XCC_UTIL_LIBCPP_CERR))) goto end;
+    if(xc_common_api_level >= 29) libcpp = xc_dl_open(XCC_UTIL_LIBCPP_Q, XC_DL_DYNSYM);
+    if(NULL == libcpp && NULL == (libcpp = xc_dl_open(XCC_UTIL_LIBCPP, XC_DL_DYNSYM))) goto end;
+    if(NULL == (xc_trace_libcpp_cerr = xc_dl_dynsym_object(libcpp, XCC_UTIL_LIBCPP_CERR))) goto end;
 
-
-    if(xc_common_api_level >= 30) libart = xc_dl_create(XCC_UTIL_LIBART_APEX30);
-    if(NULL == libart && xc_common_api_level >= 29) libart = xc_dl_create(XCC_UTIL_LIBART_APEX);
-    if(NULL == libart && NULL == (libart = xc_dl_create(XCC_UTIL_LIBART))) goto end;
-    if(NULL == (xc_trace_libart_runtime_instance = (void **)xc_dl_sym(libart, XCC_UTIL_LIBART_RUNTIME_INSTANCE))) goto end;
-    if(NULL == (xc_trace_libart_runtime_dump = (xcc_util_libart_runtime_dump_t)xc_dl_sym(libart, XCC_UTIL_LIBART_RUNTIME_DUMP))) goto end;
+    if(xc_common_api_level >= 30) libart = xc_dl_open(XCC_UTIL_LIBART_R, XC_DL_DYNSYM);
+    if(NULL == libart && xc_common_api_level >= 29) libart = xc_dl_open(XCC_UTIL_LIBART_Q, XC_DL_DYNSYM);
+    if(NULL == libart && NULL == (libart = xc_dl_open(XCC_UTIL_LIBART, XC_DL_DYNSYM))) goto end;
+    if(NULL == (xc_trace_libart_runtime_instance = (void **)xc_dl_dynsym_object(libart, XCC_UTIL_LIBART_RUNTIME_INSTANCE))) goto end;
+    if(NULL == (xc_trace_libart_runtime_dump = (xcc_util_libart_runtime_dump_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_RUNTIME_DUMP))) goto end;
     if(xc_trace_is_lollipop)
     {
-        if(NULL == (xc_trace_libart_dbg_suspend = (xcc_util_libart_dbg_suspend_t)xc_dl_sym(libart, XCC_UTIL_LIBART_DBG_SUSPEND))) goto end;
-        if(NULL == (xc_trace_libart_dbg_resume = (xcc_util_libart_dbg_resume_t)xc_dl_sym(libart, XCC_UTIL_LIBART_DBG_RESUME))) goto end;
+        if(NULL == (xc_trace_libart_dbg_suspend = (xcc_util_libart_dbg_suspend_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_DBG_SUSPEND))) goto end;
+        if(NULL == (xc_trace_libart_dbg_resume = (xcc_util_libart_dbg_resume_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_DBG_RESUME))) goto end;
     }
 
     //OK
     xc_trace_symbols_status = 0;
 
  end:
-    if(NULL != libcpp) xc_dl_destroy(&libcpp);
-    if(NULL != libart) xc_dl_destroy(&libart);
+    if(NULL != libcpp) xc_dl_close(&libcpp);
+    if(NULL != libart) xc_dl_close(&libart);
     return xc_trace_symbols_status;
-}
-
-//Not reliable! But try our best to avoid crashes.
-static int xc_trace_check_address_valid()
-{
-    FILE      *f = NULL;
-    char       line[512];
-    uintptr_t  start, end;
-    int        r_cerr = XCC_ERRNO_INVAL;
-    int        r_runtime_instance = XCC_ERRNO_INVAL;
-    int        r_runtime_dump = XCC_ERRNO_INVAL;
-    int        r_dbg_suspend = XCC_ERRNO_INVAL;
-    int        r_dbg_resume = XCC_ERRNO_INVAL;
-    int        r = XCC_ERRNO_INVAL;
-
-    if(NULL == (f = fopen("/proc/self/maps", "r"))) return XCC_ERRNO_SYS;
-    
-    while(fgets(line, sizeof(line), f))
-    {
-        if(2 != sscanf(line, "%"SCNxPTR"-%"SCNxPTR" r", &start, &end)) continue;
-        
-        if(0 != r_cerr && (uintptr_t)xc_trace_libcpp_cerr >= start && (uintptr_t)xc_trace_libcpp_cerr < end)
-            r_cerr = 0;
-        if(0 != r_runtime_instance && (uintptr_t)xc_trace_libart_runtime_instance >= start && (uintptr_t)xc_trace_libart_runtime_instance < end)
-            r_runtime_instance = 0;
-        if(0 != r_runtime_dump && (uintptr_t)xc_trace_libart_runtime_dump >= start && (uintptr_t)xc_trace_libart_runtime_dump < end)
-            r_runtime_dump = 0;
-        if(xc_trace_is_lollipop)
-        {
-            if(0 != r_dbg_suspend && (uintptr_t)xc_trace_libart_dbg_suspend >= start && (uintptr_t)xc_trace_libart_dbg_suspend < end)
-                r_dbg_suspend = 0;
-            if(0 != r_dbg_resume && (uintptr_t)xc_trace_libart_dbg_resume >= start && (uintptr_t)xc_trace_libart_dbg_resume < end)
-                r_dbg_resume = 0;
-        }
-        
-        if(0 == r_cerr && 0 == r_runtime_instance && 0 == r_runtime_dump &&
-           (!xc_trace_is_lollipop || (0 == r_dbg_suspend && 0 == r_dbg_resume)))
-        {
-            r = 0;
-            break;
-        }
-    }
-    if(0 != r) goto end;
-
-    r = XCC_ERRNO_INVAL;
-    rewind(f);
-    while(fgets(line, sizeof(line), f))
-    {
-        if(2 != sscanf(line, "%"SCNxPTR"-%"SCNxPTR" r", &start, &end)) continue;
-
-        //The next line of code will cause segmentation fault, sometimes.
-        if((uintptr_t)(*xc_trace_libart_runtime_instance) >= start && (uintptr_t)(*xc_trace_libart_runtime_instance) < end)
-        {
-            r = 0;
-            break;
-        }
-    }
-    
- end:
-    fclose(f);
-    return r;
 }
 
 static int xc_trace_logs_filter(const struct dirent *entry)
@@ -329,11 +267,6 @@ static void *xc_trace_dumper(void *arg)
         if(0 != xc_trace_load_symbols())
         {
             if(0 != xcc_util_write_str(fd, "Failed to load symbols.\n")) goto end;
-            goto skip;
-        }
-        if(0 != xc_trace_check_address_valid())
-        {
-            if(0 != xcc_util_write_str(fd, "Failed to check runtime address.\n")) goto end;
             goto skip;
         }
         if(dup2(fd, STDERR_FILENO) < 0)

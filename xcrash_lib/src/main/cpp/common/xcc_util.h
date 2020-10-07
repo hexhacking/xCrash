@@ -95,22 +95,21 @@ typedef struct
             _rc; })
 
 #ifndef __LP64__
-#define XCC_UTIL_LIBC          "/system/lib/libc.so"
-#define XCC_UTIL_LIBCPP        "/system/lib/libc++.so"
-#define XCC_UTIL_LIBART        "/system/lib/libart.so"
-#define XCC_UTIL_LIBC_APEX     "/apex/com.android.runtime/lib/bionic/libc.so"
-#define XCC_UTIL_LIBCPP_APEX   "/apex/com.android.runtime/lib/libc++.so"
-#define XCC_UTIL_LIBART_APEX   "/apex/com.android.runtime/lib/libart.so"
-#define XCC_UTIL_LIBART_APEX30 "/apex/com.android.art/lib/libart.so"
+#define XCC_UTIL_LIBC     "/system/lib/libc.so"
+#define XCC_UTIL_LIBC_Q   "/apex/com.android.runtime/lib/bionic/libc.so"
+#define XCC_UTIL_LIBCPP   "/system/lib/libc++.so"
+#define XCC_UTIL_LIBCPP_Q "/apex/com.android.runtime/lib/libc++.so"
+#define XCC_UTIL_LIBART   "/system/lib/libart.so"
+#define XCC_UTIL_LIBART_Q "/apex/com.android.runtime/lib/libart.so"
+#define XCC_UTIL_LIBART_R "/apex/com.android.art/lib/libart.so"
 #else
-#define XCC_UTIL_LIBC          "/system/lib64/libc.so"
-#define XCC_UTIL_LIBCPP        "/system/lib64/libc++.so"
-#define XCC_UTIL_LIBART        "/system/lib64/libart.so"
-#define XCC_UTIL_LIBC_APEX     "/apex/com.android.runtime/lib64/bionic/libc.so"
-#define XCC_UTIL_LIBCPP_APEX   "/apex/com.android.runtime/lib64/libc++.so"
-#define XCC_UTIL_LIBART_APEX   "/apex/com.android.runtime/lib64/libart.so"
-#define XCC_UTIL_LIBART_APEX30 "/apex/com.android.art/lib64/libart.so"
-
+#define XCC_UTIL_LIBC     "/system/lib64/libc.so"
+#define XCC_UTIL_LIBC_Q   "/apex/com.android.runtime/lib64/bionic/libc.so"
+#define XCC_UTIL_LIBCPP   "/system/lib64/libc++.so"
+#define XCC_UTIL_LIBCPP_Q "/apex/com.android.runtime/lib64/libc++.so"
+#define XCC_UTIL_LIBART   "/system/lib64/libart.so"
+#define XCC_UTIL_LIBART_Q "/apex/com.android.runtime/lib64/libart.so"
+#define XCC_UTIL_LIBART_R "/apex/com.android.art/lib64/libart.so"
 #endif
 
 #define XCC_UTIL_LIBC_ABORT_MSG_PTR      "__abort_message_ptr"

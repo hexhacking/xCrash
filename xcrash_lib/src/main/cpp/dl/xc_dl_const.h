@@ -1,5 +1,4 @@
 // Copyright (c) 2020-present, HexHacking Team. All rights reserved.
-// Copyright (c) 2019, iQIYI, Inc. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +19,23 @@
 // SOFTWARE.
 //
 
-// Created by caikelun on 2019-03-07.
+// Created by caikelun on 2020-10-04.
 
-#ifndef XCD_UTIL_H
-#define XCD_UTIL_H 1
+#pragma once
 
-#include <stdint.h>
-#include <inttypes.h>
-#include <sys/types.h>
-
-#ifdef __cplusplus
-extern "C" {
+#ifndef __LP64__
+#define XC_DL_CONST_PATHNAME_LINKER     "/system/bin/linker"
+#define XC_DL_CONST_PATHNAME_LZMA       "/system/lib/liblzma.so"
+#else
+#define XC_DL_CONST_PATHNAME_LINKER     "/system/bin/linker64"
+#define XC_DL_CONST_PATHNAME_LZMA       "/system/lib64/liblzma.so"
 #endif
 
-int xcd_util_ptrace_read_long(pid_t pid, uintptr_t addr, long *value);
-size_t xcd_util_ptrace_read(pid_t pid, uintptr_t addr, void *dst, size_t bytes);
-int xcd_util_ptrace_read_fully(pid_t pid, uintptr_t addr, void *dst, size_t bytes);
+#define XC_DL_CONST_SYM_LINKER_MUTEX    "__dl__ZL10g_dl_mutex"
 
-int xcd_util_xz_decompress(uint8_t* src, size_t src_size, uint8_t** dst, size_t* dst_size);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+#define XC_DL_CONST_SYM_LZMA_CRCGEN     "CrcGenerateTable"
+#define XC_DL_CONST_SYM_LZMA_CRC64GEN   "Crc64GenerateTable"
+#define XC_DL_CONST_SYM_LZMA_CONSTRUCT  "XzUnpacker_Construct"
+#define XC_DL_CONST_SYM_LZMA_ISFINISHED "XzUnpacker_IsStreamWasFinished"
+#define XC_DL_CONST_SYM_LZMA_FREE       "XzUnpacker_Free"
+#define XC_DL_CONST_SYM_LZMA_CODE       "XzUnpacker_Code"

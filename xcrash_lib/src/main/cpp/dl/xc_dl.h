@@ -1,5 +1,4 @@
 // Copyright (c) 2020-present, HexHacking Team. All rights reserved.
-// Copyright (c) 2019, iQIYI, Inc. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +19,27 @@
 // SOFTWARE.
 //
 
-// Created by caikelun on 2019-03-07.
+// Created by caikelun on 2020-10-04.
 
-#ifndef XCD_UTIL_H
-#define XCD_UTIL_H 1
+#pragma once
 
-#include <stdint.h>
-#include <inttypes.h>
-#include <sys/types.h>
+// Similar to dlopen() / dlclose() / dlsym(), But:
+//
+// 1. Only find the already loaded ELF in the memory, without actually reloading it from the disk.
+// 2. Clearly specify whether to search for symbols from .dynsym or .symtab.
+// 3. Clearly specify whether to find a function or an object.
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define XC_DL_DYNSYM 0x01
+#define XC_DL_SYMTAB 0x02
+#define XC_DL_ALL    (XC_DL_DYNSYM | XC_DL_SYMTAB)
 
-int xcd_util_ptrace_read_long(pid_t pid, uintptr_t addr, long *value);
-size_t xcd_util_ptrace_read(pid_t pid, uintptr_t addr, void *dst, size_t bytes);
-int xcd_util_ptrace_read_fully(pid_t pid, uintptr_t addr, void *dst, size_t bytes);
+typedef struct xc_dl xc_dl_t;
 
-int xcd_util_xz_decompress(uint8_t* src, size_t src_size, uint8_t** dst, size_t* dst_size);
+xc_dl_t *xc_dl_open(const char *pathname, int flags);
+void xc_dl_close(xc_dl_t **self);
 
-#ifdef __cplusplus
-}
-#endif
+void *xc_dl_dynsym_func(xc_dl_t *self, const char *sym_name);
+void *xc_dl_dynsym_object(xc_dl_t *self, const char *sym_name);
 
-#endif
+void *xc_dl_symtab_func(xc_dl_t *self, const char *sym_name);
+void *xc_dl_symtab_object(xc_dl_t *self, const char *sym_name);

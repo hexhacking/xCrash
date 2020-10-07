@@ -250,24 +250,23 @@ static void xc_xcrash_record_java_stacktrace()
     if(xc_common_api_level < 21) return;
 
     //peek libc++.so
-    if(xc_common_api_level >= 29) libcpp = xc_dl_create(XCC_UTIL_LIBCPP_APEX);
-    if(NULL == libcpp && NULL == (libcpp = xc_dl_create(XCC_UTIL_LIBCPP))) goto end;
-    if(NULL == (cerr = xc_dl_sym(libcpp, XCC_UTIL_LIBCPP_CERR))) goto end;
+    if(xc_common_api_level >= 29) libcpp = xc_dl_open(XCC_UTIL_LIBCPP_Q, XC_DL_DYNSYM);
+    if(NULL == libcpp && NULL == (libcpp = xc_dl_open(XCC_UTIL_LIBCPP, XC_DL_DYNSYM))) goto end;
+    if(NULL == (cerr = xc_dl_dynsym_object(libcpp, XCC_UTIL_LIBCPP_CERR))) goto end;
 
     //peek libart.so
-    if(xc_common_api_level >= 30) libart = xc_dl_create(XCC_UTIL_LIBART_APEX30);
-    if(NULL == libart && xc_common_api_level >= 29) libart = xc_dl_create(XCC_UTIL_LIBART_APEX);
-    if(NULL == libart && NULL == (libart = xc_dl_create(XCC_UTIL_LIBART))) goto end;
-    if(NULL == (current = (xcc_util_libart_thread_current_t)xc_dl_sym(libart, XCC_UTIL_LIBART_THREAD_CURRENT))) goto end;
-    if(NULL == (dump = (xcc_util_libart_thread_dump_t)xc_dl_sym(libart, XCC_UTIL_LIBART_THREAD_DUMP)))
+    if(xc_common_api_level >= 30) libart = xc_dl_open(XCC_UTIL_LIBART_R, XC_DL_DYNSYM);
+    if(NULL == libart && xc_common_api_level >= 29) libart = xc_dl_open(XCC_UTIL_LIBART_Q, XC_DL_DYNSYM);
+    if(NULL == libart && NULL == (libart = xc_dl_open(XCC_UTIL_LIBART, XC_DL_DYNSYM))) goto end;
+    if(NULL == (current = (xcc_util_libart_thread_current_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_THREAD_CURRENT))) goto end;
+    if(NULL == (dump = (xcc_util_libart_thread_dump_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_THREAD_DUMP)))
     {
 #ifndef __i386__
-        if(NULL == (dump2 = (xcc_util_libart_thread_dump2_t)xc_dl_sym(libart, XCC_UTIL_LIBART_THREAD_DUMP2))) goto end;
+        if(NULL == (dump2 = (xcc_util_libart_thread_dump2_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_THREAD_DUMP2))) goto end;
 #else
         goto end;
 #endif
     }
-    
     //get current thread object
     if(NULL == (thread = current())) goto end;
 
@@ -285,8 +284,8 @@ static void xc_xcrash_record_java_stacktrace()
     xcc_util_write_str(xc_crash_log_fd, "\n");
 
  end:
-    if(NULL != libcpp) xc_dl_destroy(&libcpp);
-    if(NULL != libart) xc_dl_destroy(&libart);
+    if(NULL != libcpp) xc_dl_close(&libcpp);
+    if(NULL != libart) xc_dl_close(&libart);
 }
 
 static void *xc_crash_callback_thread(void *arg)

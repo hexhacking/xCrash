@@ -1,5 +1,4 @@
 // Copyright (c) 2020-present, HexHacking Team. All rights reserved.
-// Copyright (c) 2019, iQIYI, Inc. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +19,17 @@
 // SOFTWARE.
 //
 
-// Created by caikelun on 2019-03-07.
+// Created by caikelun on 2020-10-04.
 
-#ifndef XCD_UTIL_H
-#define XCD_UTIL_H 1
-
+#pragma once
 #include <stdint.h>
-#include <inttypes.h>
-#include <sys/types.h>
+#include <stdbool.h>
+#include <stddef.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+bool xc_dl_util_starts_with(const char *str, const char *start);
 
-int xcd_util_ptrace_read_long(pid_t pid, uintptr_t addr, long *value);
-size_t xcd_util_ptrace_read(pid_t pid, uintptr_t addr, void *dst, size_t bytes);
-int xcd_util_ptrace_read_fully(pid_t pid, uintptr_t addr, void *dst, size_t bytes);
+size_t xc_dl_util_trim_ending(char *start);
 
-int xcd_util_xz_decompress(uint8_t* src, size_t src_size, uint8_t** dst, size_t* dst_size);
+int xc_dl_util_get_api_level(void);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+int xc_dl_util_lzma_decompress(uint8_t *src, size_t src_size, uint8_t **dst, size_t *dst_size);

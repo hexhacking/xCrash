@@ -1,5 +1,4 @@
 // Copyright (c) 2020-present, HexHacking Team. All rights reserved.
-// Copyright (c) 2019, iQIYI, Inc. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +19,21 @@
 // SOFTWARE.
 //
 
-// Created by caikelun on 2019-08-16.
+// Created by caikelun on 2020-10-04.
 
-#ifndef XC_DL_H
-#define XC_DL_H 1
+#pragma once
+#include <stddef.h>
+#include <link.h>
 
-#include <stdint.h>
-#include <sys/types.h>
+// Similar to dl_iterate_phdr(), But fixed some issues:
+//
+// 1. Compatible with Android 4.x on arm32 arch.
+// 2. Fixed bionic dl_iterate_phdr()'s bug that would cause crash on Android 5.x.
+// 3. Support iterate linker/linker64 in Android version < 8.1 (API level 27).
+// 4. Always return the full pathname.
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define XC_DL_DEFAULT     0x00
+#define XC_DL_WITH_LINKER 0x01
 
-typedef struct xc_dl xc_dl_t;
-
-xc_dl_t *xc_dl_create(const char *pathname);
-void xc_dl_destroy(xc_dl_t **self);
-
-void *xc_dl_sym(xc_dl_t *self, const char *symbol);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+typedef int (*xc_dl_iterator_cb_t)(struct dl_phdr_info *info, size_t size, void *arg);
+int xc_dl_iterator_iterate(xc_dl_iterator_cb_t cb, void *cb_arg, int flags);
