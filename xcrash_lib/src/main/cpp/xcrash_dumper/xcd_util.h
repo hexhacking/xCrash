@@ -33,9 +33,9 @@
 extern "C" {
 #endif
 
-int xcd_util_ptrace_read_long(pid_t pid, uintptr_t addr, long *value);
 size_t xcd_util_ptrace_read(pid_t pid, uintptr_t addr, void *dst, size_t bytes);
 int xcd_util_ptrace_read_fully(pid_t pid, uintptr_t addr, void *dst, size_t bytes);
+int xcd_util_ptrace_read_long(pid_t pid, uintptr_t addr, long *value);
 
 int xcd_util_xz_decompress(uint8_t* src, size_t src_size, uint8_t** dst, size_t* dst_size);
 
