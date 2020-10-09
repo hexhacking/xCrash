@@ -1,12 +1,14 @@
 <p align="center"><img src="doc/xcrash_logo.png" alt="xCrash Logo" width="450px"></p>
 
-# xCrash
+# HexHacking xCrash
 
 ![](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)
 ![](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)
 ![](https://img.shields.io/badge/release-3.0.0-red.svg?style=flat)
 ![](https://img.shields.io/badge/Android-4.1%20--%2011-blue.svg?style=flat)
 ![](https://img.shields.io/badge/arch-armeabi--v7a%20%7C%20arm64--v8a%20%7C%20x86%20%7C%20x86__64-blue.svg?style=flat)
+
+HexHacking xCrash is an independent branch of xCrash, maintained by the HexHacking Team.
 
 xCrash provides the Android app with the ability to capture java crash, native crash and ANR. No root permission or any system permissions are required.
 
@@ -107,12 +109,12 @@ class MyCustomApplication : Application() {
 
 Tombstone files will be written to `Context#getFilesDir() + "/tombstones"` directory by default. (usually in: `/data/data/PACKAGE_NAME/files/tombstones`)
 
-There is a more practical and complex sample app in the [src/java/xcrash/xcrash_sample](src/java/xcrash/xcrash_sample) folder.
+There is a more practical and complex sample app in the [xcrash_sample](xcrash_sample) folder.
 
 
 ## Support
 
-1. Check the [xcrash-sample](src/java/xcrash/xcrash_sample).
+1. Check the [xcrash-sample](xcrash_sample).
 2. Communicate on [GitHub issues](https://github.com/hexhacking/xCrash/issues).
 3. Email: <a href="mailto:caikelun@gmail.com">caikelun@gmail.com</a>
 4. QQ group: 603635869.

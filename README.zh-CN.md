@@ -1,12 +1,14 @@
 <p align="center"><img src="doc/xcrash_logo.png" alt="xCrash Logo" width="450px"></p>
 
-# xCrash
+# HexHacking xCrash
 
 ![](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)
 ![](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)
 ![](https://img.shields.io/badge/release-3.0.0-red.svg?style=flat)
 ![](https://img.shields.io/badge/Android-4.1%20--%2011-blue.svg?style=flat)
 ![](https://img.shields.io/badge/arch-armeabi--v7a%20%7C%20arm64--v8a%20%7C%20x86%20%7C%20x86__64-blue.svg?style=flat)
+
+HexHacking xCrash 是 xCrash 的一个独立分支，由 HexHacking Team 维护。
 
 xCrash 能为安卓 app 提供捕获 java 崩溃，native 崩溃和 ANR 的能力。不需要 root 权限或任何系统权限。
 
@@ -107,12 +109,12 @@ class MyCustomApplication : Application() {
 
 Tombstone 文件默认将被写入到 `Context#getFilesDir() + "/tombstones"` 目录。（通常在： `/data/data/PACKAGE_NAME/files/tombstones`）
 
-在 [src/java/xcrash/xcrash_sample](src/java/xcrash/xcrash_sample) 文件夹中，有一个更实际和复杂的示例 app。
+在 [xcrash_sample](xcrash_sample) 文件夹中，有一个更实际和复杂的示例 app。
 
 
 ## 技术支持
 
-1. 查看 [xcrash-sample](src/java/xcrash/xcrash_sample)。
+1. 查看 [xcrash-sample](xcrash_sample)。
 2. 在 [GitHub issues](https://github.com/hexhacking/xCrash/issues) 交流。
 3. 邮件: <a href="mailto:caikelun@gmail.com">caikelun@gmail.com</a>
 4. QQ 群: 603635869。
