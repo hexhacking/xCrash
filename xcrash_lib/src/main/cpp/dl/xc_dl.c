@@ -295,7 +295,7 @@ xc_dl_t *xc_dl_open(const char *pathname, int flags)
     xc_dl_t *self = NULL;
     uintptr_t pkg[3] = {(uintptr_t)&self, (uintptr_t)pathname, (uintptr_t)flags};
 
-    bool is_linker = (0 == strcmp(pathname, XC_DL_CONST_PATHNAME_LINKER));
+    bool is_linker = xc_dl_util_ends_with(pathname, XC_DL_CONST_BASENAME_LINKER);
     xc_dl_iterate(xc_dl_iterate_cb, pkg,is_linker ? (int)XC_DL_WITH_LINKER : (int)XC_DL_DEFAULT);
 
     return self;

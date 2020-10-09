@@ -24,10 +24,12 @@
 #pragma once
 
 #ifndef __LP64__
-#define XC_DL_CONST_PATHNAME_LINKER     "/system/bin/linker"
+#define XC_DL_CONST_PATHNAME_LINKER     "/system/bin/linker" // we only use this when Android < 8.1
+#define XC_DL_CONST_BASENAME_LINKER     "linker"
 #define XC_DL_CONST_PATHNAME_LZMA       "/system/lib/liblzma.so"
 #else
-#define XC_DL_CONST_PATHNAME_LINKER     "/system/bin/linker64"
+#define XC_DL_CONST_PATHNAME_LINKER     "/system/bin/linker64" // we only use this when Android < 8.1
+#define XC_DL_CONST_BASENAME_LINKER     "linker64"
 #define XC_DL_CONST_PATHNAME_LZMA       "/system/lib64/liblzma.so"
 #endif
 

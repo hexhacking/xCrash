@@ -45,6 +45,16 @@ bool xc_dl_util_starts_with(const char *str, const char *start)
     return '\0' == *start;
 }
 
+bool xc_dl_util_ends_with(const char* str, const char* ending)
+{
+    size_t str_len = strlen(str);
+    size_t ending_len = strlen(ending);
+
+    if(ending_len > str_len) return 0;
+
+    return 0 == strcmp(str + (str_len - ending_len), ending) ? true : false;
+}
+
 size_t xc_dl_util_trim_ending(char *start)
 {
     char *end = start + strlen(start);
