@@ -38,25 +38,25 @@
 #include "xc_dl_const.h"
 
 /*
- * ============================================================================
- * API-LEVEL  ANDROID-VERSION  ARCH    SOLUTION
- * ============================================================================
- * 16         4.1              arm32   read /proc/self/maps
- *                             others  dl_iterate_phdr()
- * 17         4.2              arm32   read /proc/self/maps
- *                             others  dl_iterate_phdr()
- * 18         4.3              arm32   read /proc/self/maps
- *                             others  dl_iterate_phdr()
- * 19         4.4              arm32   read /proc/self/maps
- *                             others  dl_iterate_phdr()
- * 20         4.4W             arm32   read /proc/self/maps
- *                             others  dl_iterate_phdr()
- * ----------------------------------------------------------------------------
- * 21         5.0              all     dl_iterate_phdr() + __dl__ZL10g_dl_mutex
- * 22         5.1              all     dl_iterate_phdr() + __dl__ZL10g_dl_mutex
- * ----------------------------------------------------------------------------
- * >= 23      >= 6.0           all     dl_iterate_phdr()
- * ============================================================================
+ * =========================================================================================================
+ * API-LEVEL  ANDROID-VERSION  SOLUTION
+ * =========================================================================================================
+ * 16         4.1              /proc/self/maps
+ * 17         4.2              /proc/self/maps
+ * 18         4.3              /proc/self/maps
+ * 19         4.4              /proc/self/maps
+ * 20         4.4W             /proc/self/maps
+ * ---------------------------------------------------------------------------------------------------------
+ * 21         5.0              dl_iterate_phdr() + __dl__ZL10g_dl_mutex + linker/linker64 in /proc/self/maps
+ * 22         5.1              dl_iterate_phdr() + __dl__ZL10g_dl_mutex + linker/linker64 in /proc/self/maps
+ * --------------------------------------------------------------------
+ * 23         6.0              dl_iterate_phdr() + linker/linker64 in /proc/self/maps
+ * 24         7.0              dl_iterate_phdr() + linker/linker64 in /proc/self/maps
+ * 25         7.1              dl_iterate_phdr() + linker/linker64 in /proc/self/maps
+ * 26         8.0              dl_iterate_phdr() + linker/linker64 in /proc/self/maps
+ * ---------------------------------------------------------------------------------------------------------
+ * >= 27      >= 8.1           dl_iterate_phdr()
+ * =========================================================================================================
  */
 
 extern __attribute((weak)) int dl_iterate_phdr(int (*)(struct dl_phdr_info *, size_t, void *), void *);
@@ -96,10 +96,7 @@ static int xc_dl_iterator_open_or_rewind_maps(FILE **maps)
         if(NULL == *maps) return -1;
     }
     else
-    {
-        // seek to the beginning of the maps
         rewind(*maps);
-    }
 
     return 0;
 }
@@ -136,14 +133,14 @@ static uintptr_t xc_dl_iterator_get_pathname_from_maps(struct dl_phdr_info *info
     return 0; // failed
 }
 
-static int xc_dl_iterator_internal_cb(struct dl_phdr_info *info, size_t size, void *arg)
+static int xc_dl_iterator_iterate_by_linker_cb(struct dl_phdr_info *info, size_t size, void *arg)
 {
     uintptr_t *pkg = (uintptr_t *)arg;
     xc_dl_iterator_cb_t cb = (xc_dl_iterator_cb_t)*pkg++;
     void *cb_arg = (void *)*pkg++;
     FILE **maps = (FILE **)*pkg;
 
-    if(NULL == info->dlpi_name || '\0' == info->dlpi_name[0]) return 0; // ignore this ELF
+    if(NULL == info->dlpi_name || '\0' == info->dlpi_name[0]) return 0; // ignore invalid ELF
 
     if('/' != info->dlpi_name[0] && '[' != info->dlpi_name[0])
     {
@@ -195,7 +192,7 @@ static uintptr_t xc_dl_iterator_find_linker_base(FILE **maps)
     return 0;
 }
 
-static int xc_dl_iterator_callback(xc_dl_iterator_cb_t cb, void *cb_arg, uintptr_t base, const char *pathname)
+static int xc_dl_iterator_do_callback(xc_dl_iterator_cb_t cb, void *cb_arg, uintptr_t base, const char *pathname)
 {
     ElfW(Ehdr) *ehdr = (ElfW(Ehdr) *)base;
 
@@ -224,21 +221,21 @@ static int xc_dl_iterator_iterate_by_linker(xc_dl_iterator_cb_t cb, void *cb_arg
         uintptr_t base = xc_dl_iterator_find_linker_base(&maps);
         if(0 != base)
         {
-            if(0 != xc_dl_iterator_callback(cb, cb_arg, base, XC_DL_CONST_PATHNAME_LINKER)) return 0;
+            if(0 != xc_dl_iterator_do_callback(cb, cb_arg, base, XC_DL_CONST_PATHNAME_LINKER)) return 0;
         }
     }
 
-    // for others
+    // for other ELF
     uintptr_t pkg[3] = {(uintptr_t)cb, (uintptr_t)cb_arg, (uintptr_t)&maps};
     if(NULL != xc_dl_iterator_linker_mutex) pthread_mutex_lock(xc_dl_iterator_linker_mutex);
-    dl_iterate_phdr(xc_dl_iterator_internal_cb, pkg);
+    dl_iterate_phdr(xc_dl_iterator_iterate_by_linker_cb, pkg);
     if(NULL != xc_dl_iterator_linker_mutex) pthread_mutex_unlock(xc_dl_iterator_linker_mutex);
 
     if(NULL != maps) fclose(maps);
     return 0;
 }
 
-#if defined(__arm__)
+#if defined(__arm__) || defined(__i386__)
 static int xc_dl_iterator_iterate_by_maps(xc_dl_iterator_cb_t cb, void *cb_arg)
 {
     FILE *maps = fopen("/proc/self/maps", "r");
@@ -259,7 +256,7 @@ static int xc_dl_iterator_iterate_by_maps(xc_dl_iterator_cb_t cb, void *cb_arg)
         xc_dl_util_trim_ending(pathname);
 
         // callback
-        if(0 != xc_dl_iterator_callback(cb, cb_arg, base, pathname)) break;
+        if(0 != xc_dl_iterator_do_callback(cb, cb_arg, base, pathname)) break;
     }
 
     fclose(maps);
@@ -282,8 +279,8 @@ int xc_dl_iterator_iterate(xc_dl_iterator_cb_t cb, void *cb_arg, int flags)
         }
     }
 
-    // iterate by /proc/self/maps in Android 4.x on arm32 arch
-#if defined(__arm__)
+    // iterate by /proc/self/maps in Android 4.x (Android 4.x only supports arm32 and x86)
+#if defined(__arm__) || defined(__i386__)
     if(api_level < __ANDROID_API_L__)
         return xc_dl_iterator_iterate_by_maps(cb, cb_arg);
 #endif
