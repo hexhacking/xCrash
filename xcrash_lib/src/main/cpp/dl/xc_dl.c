@@ -37,7 +37,7 @@
 #include <pthread.h>
 #include <android/api-level.h>
 #include "xc_dl.h"
-#include "xc_dl_iterator.h"
+#include "xc_dl_iterate.h"
 #include "xc_dl_util.h"
 #include "xc_dl_const.h"
 
@@ -240,7 +240,7 @@ static int xc_dl_symtab_load(xc_dl_t *self, struct dl_phdr_info *info, ElfW(Shdr
     return -1; // not found
 }
 
-static int xc_dl_iterator_cb(struct dl_phdr_info *info, size_t size, void *arg)
+static int xc_dl_iterate_cb(struct dl_phdr_info *info, size_t size, void *arg)
 {
     (void)size;
 
@@ -250,7 +250,21 @@ static int xc_dl_iterator_cb(struct dl_phdr_info *info, size_t size, void *arg)
     int flags = (int)*pkg;
 
     // check load_bias and pathname
-    if(0 == info->dlpi_addr || NULL == info->dlpi_name || 0 != strcmp(info->dlpi_name, pathname)) return 0;
+    if(0 == info->dlpi_addr || NULL == info->dlpi_name) return 0;
+    if('/' == pathname[0] || '[' == pathname[0])
+    {
+        // full pathname
+        if(0 != strcmp(info->dlpi_name, pathname)) return 0;
+    }
+    else
+    {
+        // basename ?
+        size_t basename_len = strlen(pathname);
+        size_t pathname_len = strlen(info->dlpi_name);
+        if(1 + basename_len > pathname_len) return 0;
+        if(0 != strcmp(info->dlpi_name + (pathname_len - basename_len), pathname)) return 0;
+        if('/' != *(info->dlpi_name + (pathname_len - basename_len) - 1)) return 0;
+    }
 
     // found the target ELF
     if(NULL == ((*self) = calloc(1, sizeof(xc_dl_t)))) return 1;
@@ -282,7 +296,7 @@ xc_dl_t *xc_dl_open(const char *pathname, int flags)
     uintptr_t pkg[3] = {(uintptr_t)&self, (uintptr_t)pathname, (uintptr_t)flags};
 
     bool is_linker = (0 == strcmp(pathname, XC_DL_CONST_PATHNAME_LINKER));
-    xc_dl_iterator_iterate(xc_dl_iterator_cb, pkg,is_linker ? (int)XC_DL_WITH_LINKER : (int)XC_DL_DEFAULT);
+    xc_dl_iterate(xc_dl_iterate_cb, pkg,is_linker ? (int)XC_DL_WITH_LINKER : (int)XC_DL_DEFAULT);
 
     return self;
 }

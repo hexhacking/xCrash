@@ -23,12 +23,6 @@
 
 #pragma once
 
-// Similar to dlopen() / dlclose() / dlsym(), But:
-//
-// 1. Only find the already loaded ELF in the memory, without actually reloading it from the disk.
-// 2. Clearly specify whether to search for symbols from .dynsym or .symtab.
-// 3. Clearly specify whether to find a function or an object.
-
 #define XC_DL_DYNSYM 0x01
 #define XC_DL_SYMTAB 0x02
 #define XC_DL_ALL    (XC_DL_DYNSYM | XC_DL_SYMTAB)

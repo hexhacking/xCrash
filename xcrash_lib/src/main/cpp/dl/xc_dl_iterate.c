@@ -32,7 +32,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <android/api-level.h>
-#include "xc_dl_iterator.h"
+#include "xc_dl_iterate.h"
 #include "xc_dl.h"
 #include "xc_dl_util.h"
 #include "xc_dl_const.h"
@@ -62,19 +62,19 @@
 extern __attribute((weak)) int dl_iterate_phdr(int (*)(struct dl_phdr_info *, size_t, void *), void *);
 
 // Android 5.0/5.1 linker's global mutex in .symtab
-static pthread_mutex_t *xc_dl_iterator_linker_mutex = NULL;
+static pthread_mutex_t *xc_dl_iterate_linker_mutex = NULL;
 
-static void xc_dl_iterator_linker_mutex_init()
+static void xc_dl_iterate_linker_mutex_init()
 {
     xc_dl_t *linker = xc_dl_open(XC_DL_CONST_PATHNAME_LINKER, XC_DL_SYMTAB);
     if(NULL == linker) return;
 
-    xc_dl_iterator_linker_mutex = xc_dl_symtab_object(linker, XC_DL_CONST_SYM_LINKER_MUTEX);
+    xc_dl_iterate_linker_mutex = xc_dl_symtab_object(linker, XC_DL_CONST_SYM_LINKER_MUTEX);
 
     xc_dl_close(&linker);
 }
 
-static uintptr_t xc_dl_iterator_get_min_vaddr(struct dl_phdr_info *info)
+static uintptr_t xc_dl_iterate_get_min_vaddr(struct dl_phdr_info *info)
 {
     uintptr_t min_vaddr = UINTPTR_MAX;
     for(size_t i = 0; i < info->dlpi_phnum; i++)
@@ -88,7 +88,7 @@ static uintptr_t xc_dl_iterator_get_min_vaddr(struct dl_phdr_info *info)
     return min_vaddr;
 }
 
-static int xc_dl_iterator_open_or_rewind_maps(FILE **maps)
+static int xc_dl_iterate_open_or_rewind_maps(FILE **maps)
 {
     if(NULL == *maps)
     {
@@ -101,15 +101,15 @@ static int xc_dl_iterator_open_or_rewind_maps(FILE **maps)
     return 0;
 }
 
-static uintptr_t xc_dl_iterator_get_pathname_from_maps(struct dl_phdr_info *info, char *buf, size_t buf_len, FILE **maps)
+static uintptr_t xc_dl_iterate_get_pathname_from_maps(struct dl_phdr_info *info, char *buf, size_t buf_len, FILE **maps)
 {
     // get base address
-    uintptr_t min_vaddr = xc_dl_iterator_get_min_vaddr(info);
+    uintptr_t min_vaddr = xc_dl_iterate_get_min_vaddr(info);
     if(UINTPTR_MAX == min_vaddr) return 0; // failed
     uintptr_t base = (uintptr_t)(info->dlpi_addr + min_vaddr);
 
     // open or rewind maps-file
-    if(0 != xc_dl_iterator_open_or_rewind_maps(maps)) return 0; // failed
+    if(0 != xc_dl_iterate_open_or_rewind_maps(maps)) return 0; // failed
 
     char line[1024];
     while(fgets(line, sizeof(line), *maps))
@@ -133,10 +133,10 @@ static uintptr_t xc_dl_iterator_get_pathname_from_maps(struct dl_phdr_info *info
     return 0; // failed
 }
 
-static int xc_dl_iterator_iterate_by_linker_cb(struct dl_phdr_info *info, size_t size, void *arg)
+static int xc_dl_iterate_by_linker_cb(struct dl_phdr_info *info, size_t size, void *arg)
 {
     uintptr_t *pkg = (uintptr_t *)arg;
-    xc_dl_iterator_cb_t cb = (xc_dl_iterator_cb_t)*pkg++;
+    xc_dl_iterate_cb_t cb = (xc_dl_iterate_cb_t)*pkg++;
     void *cb_arg = (void *)*pkg++;
     FILE **maps = (FILE **)*pkg;
 
@@ -146,7 +146,7 @@ static int xc_dl_iterator_iterate_by_linker_cb(struct dl_phdr_info *info, size_t
     {
         // get pathname from /proc/self/maps
         char buf[512];
-        uintptr_t pathname = xc_dl_iterator_get_pathname_from_maps(info, buf, sizeof(buf), maps);
+        uintptr_t pathname = xc_dl_iterate_get_pathname_from_maps(info, buf, sizeof(buf), maps);
         if(0 == pathname) return 0; // ignore this ELF
 
         // callback
@@ -164,10 +164,10 @@ static int xc_dl_iterator_iterate_by_linker_cb(struct dl_phdr_info *info, size_t
     }
 }
 
-static uintptr_t xc_dl_iterator_find_linker_base(FILE **maps)
+static uintptr_t xc_dl_iterate_find_linker_base(FILE **maps)
 {
     // open or rewind maps-file
-    if(0 != xc_dl_iterator_open_or_rewind_maps(maps)) return 0; // failed
+    if(0 != xc_dl_iterate_open_or_rewind_maps(maps)) return 0; // failed
 
     size_t linker_pathname_len = strlen(" "XC_DL_CONST_PATHNAME_LINKER);
 
@@ -192,7 +192,7 @@ static uintptr_t xc_dl_iterator_find_linker_base(FILE **maps)
     return 0;
 }
 
-static int xc_dl_iterator_do_callback(xc_dl_iterator_cb_t cb, void *cb_arg, uintptr_t base, const char *pathname)
+static int xc_dl_iterate_do_callback(xc_dl_iterate_cb_t cb, void *cb_arg, uintptr_t base, const char *pathname)
 {
     ElfW(Ehdr) *ehdr = (ElfW(Ehdr) *)base;
 
@@ -202,14 +202,14 @@ static int xc_dl_iterator_do_callback(xc_dl_iterator_cb_t cb, void *cb_arg, uint
     info.dlpi_phnum = ehdr->e_phnum;
 
     // get load bias
-    uintptr_t min_vaddr = xc_dl_iterator_get_min_vaddr(&info);
+    uintptr_t min_vaddr = xc_dl_iterate_get_min_vaddr(&info);
     if(UINTPTR_MAX == min_vaddr) return 0; // ignore invalid ELF
     info.dlpi_addr = (ElfW(Addr))(base - min_vaddr);
 
     return cb(&info, sizeof(struct dl_phdr_info), cb_arg);
 }
 
-static int xc_dl_iterator_iterate_by_linker(xc_dl_iterator_cb_t cb, void *cb_arg, int flags)
+static int xc_dl_iterate_by_linker(xc_dl_iterate_cb_t cb, void *cb_arg, int flags)
 {
     if(NULL == dl_iterate_phdr) return -1;
 
@@ -218,25 +218,25 @@ static int xc_dl_iterator_iterate_by_linker(xc_dl_iterator_cb_t cb, void *cb_arg
     // for linker/linker64 in Android version < 8.1 (API level 27)
     if((flags & XC_DL_WITH_LINKER) && xc_dl_util_get_api_level() < __ANDROID_API_O_MR1__)
     {
-        uintptr_t base = xc_dl_iterator_find_linker_base(&maps);
+        uintptr_t base = xc_dl_iterate_find_linker_base(&maps);
         if(0 != base)
         {
-            if(0 != xc_dl_iterator_do_callback(cb, cb_arg, base, XC_DL_CONST_PATHNAME_LINKER)) return 0;
+            if(0 != xc_dl_iterate_do_callback(cb, cb_arg, base, XC_DL_CONST_PATHNAME_LINKER)) return 0;
         }
     }
 
     // for other ELF
     uintptr_t pkg[3] = {(uintptr_t)cb, (uintptr_t)cb_arg, (uintptr_t)&maps};
-    if(NULL != xc_dl_iterator_linker_mutex) pthread_mutex_lock(xc_dl_iterator_linker_mutex);
-    dl_iterate_phdr(xc_dl_iterator_iterate_by_linker_cb, pkg);
-    if(NULL != xc_dl_iterator_linker_mutex) pthread_mutex_unlock(xc_dl_iterator_linker_mutex);
+    if(NULL != xc_dl_iterate_linker_mutex) pthread_mutex_lock(xc_dl_iterate_linker_mutex);
+    dl_iterate_phdr(xc_dl_iterate_by_linker_cb, pkg);
+    if(NULL != xc_dl_iterate_linker_mutex) pthread_mutex_unlock(xc_dl_iterate_linker_mutex);
 
     if(NULL != maps) fclose(maps);
     return 0;
 }
 
 #if defined(__arm__) || defined(__i386__)
-static int xc_dl_iterator_iterate_by_maps(xc_dl_iterator_cb_t cb, void *cb_arg)
+static int xc_dl_iterate_by_maps(xc_dl_iterate_cb_t cb, void *cb_arg)
 {
     FILE *maps = fopen("/proc/self/maps", "r");
     if(NULL == maps) return 0;
@@ -256,7 +256,7 @@ static int xc_dl_iterator_iterate_by_maps(xc_dl_iterator_cb_t cb, void *cb_arg)
         xc_dl_util_trim_ending(pathname);
 
         // callback
-        if(0 != xc_dl_iterator_do_callback(cb, cb_arg, base, pathname)) break;
+        if(0 != xc_dl_iterate_do_callback(cb, cb_arg, base, pathname)) break;
     }
 
     fclose(maps);
@@ -264,7 +264,7 @@ static int xc_dl_iterator_iterate_by_maps(xc_dl_iterator_cb_t cb, void *cb_arg)
 }
 #endif
 
-int xc_dl_iterator_iterate(xc_dl_iterator_cb_t cb, void *cb_arg, int flags)
+int xc_dl_iterate(xc_dl_iterate_cb_t cb, void *cb_arg, int flags)
 {
     int api_level = xc_dl_util_get_api_level();
 
@@ -275,16 +275,16 @@ int xc_dl_iterator_iterate(xc_dl_iterator_cb_t cb, void *cb_arg, int flags)
         if(!linker_mutex_inited)
         {
             linker_mutex_inited = true;
-            xc_dl_iterator_linker_mutex_init();
+            xc_dl_iterate_linker_mutex_init();
         }
     }
 
     // iterate by /proc/self/maps in Android 4.x (Android 4.x only supports arm32 and x86)
 #if defined(__arm__) || defined(__i386__)
     if(api_level < __ANDROID_API_L__)
-        return xc_dl_iterator_iterate_by_maps(cb, cb_arg);
+        return xc_dl_iterate_by_maps(cb, cb_arg);
 #endif
 
     // iterate by dl_iterate_phdr()
-    return xc_dl_iterator_iterate_by_linker(cb, cb_arg, flags);
+    return xc_dl_iterate_by_linker(cb, cb_arg, flags);
 }

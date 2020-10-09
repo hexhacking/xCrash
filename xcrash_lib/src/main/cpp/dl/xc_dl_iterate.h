@@ -25,15 +25,8 @@
 #include <stddef.h>
 #include <link.h>
 
-// Similar to dl_iterate_phdr(), But fixed some issues:
-//
-// 1. Compatible with Android 4.x on arm32 arch.
-// 2. Fixed bionic dl_iterate_phdr()'s bug that would cause crash on Android 5.x.
-// 3. Support iterate linker/linker64 in Android version < 8.1 (API level 27).
-// 4. Always return the full pathname.
-
 #define XC_DL_DEFAULT     0x00
 #define XC_DL_WITH_LINKER 0x01
 
-typedef int (*xc_dl_iterator_cb_t)(struct dl_phdr_info *info, size_t size, void *arg);
-int xc_dl_iterator_iterate(xc_dl_iterator_cb_t cb, void *cb_arg, int flags);
+typedef int (*xc_dl_iterate_cb_t)(struct dl_phdr_info *info, size_t size, void *arg);
+int xc_dl_iterate(xc_dl_iterate_cb_t cb, void *cb_arg, int flags);
