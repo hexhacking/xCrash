@@ -9,14 +9,14 @@ All the time, Android's DL series functions have some compatibility and ability 
 1. On arm32 arch, only available when Android >= 5.0.
 2. It does not hold the linker's global lock in Android 5.x and 4.x, this may cause a crash during iterating.
 3. In some Android 4.x and 5.x devices, it returns basename instead of full pathname.
-4. In some Android 4.x and 5.x devices, it returns package name for app_process instead of /system/bin/app_process32 or /system/bin/app_process64.
+4. In some Android 4.x and 5.x devices, it returns package name for `app_process` instead of `/system/bin/app_process32` or `/system/bin/app_process64`.
 5. linker/linker64 is only included since Android 8.1. (AOSP has included linker/linker64 since 8.0, but a large number of devices from other manufacturers have included linker/linker64 since Android 8.1)
 
 ### `dlopen()` & `dlsym()`
 
-1. Since Android 7.0, dlopen() and dlsym() cannot operate system libraries. (Although in most cases, we don’t really need to load the dynamic library from the disk, but just need to get the address of a function to call it.)
-2. dlsym() can only obtain symbols in .dynsym, but we sometimes need to obtain internal symbols in .symtab and ".symtab in .gnu_debugdata".
-3. dlsym() does not distinguish between functions and objects when searching for symbols. In ELF files with a lot of symbols, this will reduce search efficiency, especially for .symtab.
+1. Since Android 7.0, `dlopen()` and `dlsym()` cannot operate system libraries. (Although in most cases, we don’t really need to load the dynamic library from the disk, but just need to get the address of a function to call it.)
+2. `dlsym()` can only obtain symbols in `.dynsym`, but we sometimes need to obtain internal symbols in `.symtab` and "`.symtab` in `.gnu_debugdata`".
+3. `dlsym()` does not distinguish between functions and objects when searching for symbols. In ELF files with a lot of symbols, this will reduce search efficiency, especially for `.symtab`.
 
 ## Solution
 
@@ -40,7 +40,7 @@ Similar to `dl_iterate_phdr()`.
 
 Difference from the original `dl_iterate_phdr()`, xCrach DL's `xc_dl_iterate()` has an additional "flags" parameter. If you confirm that you need to iterate to the linker/linker64, pass `XC_DL_WITH_LINKER` to the "flags" parameter, otherwise pass `XC_DL_DEFAULT`.
 
-The reason for this is that in Android < 8.1, we need to find the linker/linker64 from /proc/self/maps, which has additional overhead.
+The reason for this is that in Android < 8.1, we need to find the linker/linker64 from `/proc/self/maps`, which has additional overhead.
 
 ### `xc_dl_open()` and `xc_dl_close()`
 
@@ -57,11 +57,11 @@ void xc_dl_close(xc_dl_t **self);
 
 `xc_dl_close()` and `dlclose()` have the same usage.
 
-`xc_dl_open()` and `dlopen()` are similar. But you need to specify whether you need to "open" .dymsym (`XC_DL_DYNSYM`), .symtab (`XC_DL_SYMTAB`), or both (`XC_DL_ALL`) through the "flags" parameter.
+`xc_dl_open()` and `dlopen()` are similar. But you need to specify whether you need to "open" `.dynsym` (`XC_DL_DYNSYM`), `.symtab` (`XC_DL_SYMTAB`), or both (`XC_DL_ALL`) through the "flags" parameter.
 
 You can “open” ELF by basename or full pathname. However, Android has used the namespace mechanism since 8.0. If you use basename, you need to make sure that no duplicate ELF is loaded into the current process. `xc_dl_open()` will only return the first matching ELF.
 
-This is part of the /proc/self/maps of a certain process on Android 10:
+This is part of the `/proc/self/maps` of a certain process on Android 10:
 
 ```
 ......
@@ -99,7 +99,7 @@ void *xc_dl_dynsym_func(xc_dl_t *self, const char *sym_name);
 void *xc_dl_dynsym_object(xc_dl_t *self, const char *sym_name);
 ```
 
-Used to find functions and objects in .dynsym.
+Used to find functions and objects in `.dynsym`.
 
 ### `xc_dl_symtab_func()` and `xc_dl_symtab_object()`
 
@@ -108,7 +108,7 @@ void *xc_dl_symtab_func(xc_dl_t *self, const char *sym_name);
 void *xc_dl_symtab_object(xc_dl_t *self, const char *sym_name);
 ```
 
-Used to find functions and objects in .symtab and ".symtab in .gnu_debugdata".
+Used to find functions and objects in `.symtab` and "`.symtab` in `.gnu_debugdata`".
 
 ## History
 
