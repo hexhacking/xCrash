@@ -1,14 +1,12 @@
 <p align="center"><img src="doc/xcrash_logo.png" alt="xCrash Logo" width="450px"></p>
 
-# HexHacking xCrash
+# xCrash
 
 ![](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)
 ![](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)
 ![](https://img.shields.io/badge/release-3.0.0-red.svg?style=flat)
 ![](https://img.shields.io/badge/Android-4.1%20--%2011-blue.svg?style=flat)
 ![](https://img.shields.io/badge/arch-armeabi--v7a%20%7C%20arm64--v8a%20%7C%20x86%20%7C%20x86__64-blue.svg?style=flat)
-
-HexHacking xCrash is an independent branch of xCrash, maintained by the HexHacking Team.
 
 xCrash provides the Android app with the ability to capture java crash, native crash and ANR. No root permission or any system permissions are required.
 
