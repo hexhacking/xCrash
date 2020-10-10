@@ -183,7 +183,7 @@ int xc_dl_util_lzma_decompress(uint8_t *src, size_t src_size, uint8_t **dst, siz
     size_t       src_remaining;
     size_t       dst_remaining;
     ISzAlloc     alloc = {.Alloc = xc_dl_util_lzma_internal_alloc, .Free = xc_dl_util_lzma_internal_free};
-    uint8_t      state[4096]; //must be enough
+    long long    state[4096 / sizeof(long long)]; // must be enough, 8-bit aligned
     ECoderStatus status;
     int          api_level = xc_dl_util_get_api_level();
 
