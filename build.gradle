@@ -56,6 +56,6 @@ ext {
     POM_DEVELOPER_NAME = "HexHacking Team"
 
     BINTRAY_REPO = "maven"
-    BINTRAY_ORGANIZATION = "xcrash"
+    BINTRAY_ORGANIZATION = "hexhacking"
     BINTRAY_LICENCE = ['MIT']
 }
