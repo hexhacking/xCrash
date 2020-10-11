@@ -112,6 +112,13 @@ Tombstone files will be written to `Context#getFilesDir() + "/tombstones"` direc
 There is a more practical and complex sample app in the [xcrash_sample](xcrash_sample) folder.
 
 
+## Official Repositories
+
+* GitHub : https://github.com/hexhacking/xCrash
+* GitLab : https://gitlab.com/hexhacking/xCrash
+* Gitee  : https://gitee.com/hexhacking/xCrash
+
+
 ## Support
 
 1. Check the [xcrash-sample](xcrash_sample).
