@@ -22,7 +22,7 @@ xCrash can generate a tombstone file (similar format as Android system's tombsto
 ## Features
 
 * Support Android 4.1 - 11 (API level 16 - 30).
-* Support armeabi, armeabi-v7a, arm64-v8a, x86 and x86_64.
+* Support armeabi-v7a, arm64-v8a, x86 and x86_64.
 * Capturing java crash, native crash and ANR.
 * Dumping detailed statistics about process, threads, memory, FD and network.
 * Setting which thread's info should be dumped via regular expressions.

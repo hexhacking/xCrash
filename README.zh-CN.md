@@ -22,7 +22,7 @@ xCrash 能在 app 进程崩溃或 ANR 时，在你指定的目录中生成一个
 ## 特征
 
 * 支持 Android 4.1 - 11（API level 16 - 30）。
-* 支持 armeabi，armeabi-v7a，arm64-v8a，x86 和 x86_64。
+* 支持 armeabi-v7a，arm64-v8a，x86 和 x86_64。
 * 捕获 java 崩溃，native 崩溃和 ANR。
 * 获取详细的进程、线程、内存、FD、网络统计信息。
 * 通过正则表达式设置需要获取哪些线程的信息。
