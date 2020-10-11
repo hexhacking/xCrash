@@ -28,7 +28,7 @@ In addition, the source code of this module (in the current directory) does not 
 
 ### `xc_dl_iterate()`
 
-```
+```c
 #define XC_DL_DEFAULT     0x00
 #define XC_DL_WITH_LINKER 0x01
 
@@ -44,7 +44,7 @@ The reason for this is that in Android < 8.1, we need to find the linker/linker6
 
 ### `xc_dl_open()` and `xc_dl_close()`
 
-```
+```c
 #define XC_DL_DYNSYM 0x01
 #define XC_DL_SYMTAB 0x02
 #define XC_DL_ALL    (XC_DL_DYNSYM | XC_DL_SYMTAB)
@@ -94,7 +94,7 @@ This is part of the `/proc/self/maps` of a certain process on Android 10:
 
 ### `xc_dl_dynsym_func()` and `xc_dl_dynsym_object()`
 
-```
+```c
 void *xc_dl_dynsym_func(xc_dl_t *self, const char *sym_name);
 void *xc_dl_dynsym_object(xc_dl_t *self, const char *sym_name);
 ```
@@ -103,7 +103,7 @@ Used to find functions and objects in `.dynsym`.
 
 ### `xc_dl_symtab_func()` and `xc_dl_symtab_object()`
 
-```
+```c
 void *xc_dl_symtab_func(xc_dl_t *self, const char *sym_name);
 void *xc_dl_symtab_object(xc_dl_t *self, const char *sym_name);
 ```
