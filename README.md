@@ -1,12 +1,14 @@
 <p align="center"><img src="doc/xcrash_logo.png" alt="xCrash Logo" width="450px"></p>
 
-# xCrash
+# HexHacking xCrash
 
 ![](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)
 ![](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)
 ![](https://img.shields.io/badge/release-3.0.0-red.svg?style=flat)
 ![](https://img.shields.io/badge/Android-4.1%20--%2011-blue.svg?style=flat)
 ![](https://img.shields.io/badge/arch-armeabi--v7a%20%7C%20arm64--v8a%20%7C%20x86%20%7C%20x86__64-blue.svg?style=flat)
+
+HexHacking xCrash is a branch version of xCrash, and its version number starts from 3.0.0. Whether in terms of architecture or technical details, HexHacking xCrash will be more radical.
 
 xCrash provides the Android app with the ability to capture java crash, native crash and ANR. No root permission or any system permissions are required.
 
