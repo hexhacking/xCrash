@@ -49,7 +49,7 @@
  * ---------------------------------------------------------------------------------------------------------
  * 21         5.0              dl_iterate_phdr() + __dl__ZL10g_dl_mutex + linker/linker64 in /proc/self/maps
  * 22         5.1              dl_iterate_phdr() + __dl__ZL10g_dl_mutex + linker/linker64 in /proc/self/maps
- * --------------------------------------------------------------------
+ * ---------------------------------------------------------------------------------------------------------
  * 23         6.0              dl_iterate_phdr() + linker/linker64 in /proc/self/maps
  * 24         7.0              dl_iterate_phdr() + linker/linker64 in /proc/self/maps
  * 25         7.1              dl_iterate_phdr() + linker/linker64 in /proc/self/maps
