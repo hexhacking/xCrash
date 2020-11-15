@@ -1,0 +1,9 @@
+[submodule "external/xdl"]
+	path = external/xdl
+	url = https://github.com/hexhacking/xDL.git
+[submodule "external/lzma"]
+	path = external/lzma
+	url = https://github.com/hexhacking/lzma.git
+[submodule "external/bsdsysds"]
+	path = external/bsdsysds
+	url = https://github.com/hexhacking/bsdsysds.git

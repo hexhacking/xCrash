@@ -34,6 +34,7 @@
 #include <sys/eventfd.h>
 #include <sys/syscall.h>
 #include <android/log.h>
+#include "xdl.h"
 #include "xcc_errno.h"
 #include "xcc_util.h"
 #include "xcc_signal.h"
@@ -41,7 +42,6 @@
 #include "xcc_version.h"
 #include "xc_trace.h"
 #include "xc_common.h"
-#include "xc_dl.h"
 #include "xc_jni.h"
 #include "xc_util.h"
 
@@ -132,34 +132,42 @@ static void xc_trace_send_sigquit()
 
 static int xc_trace_load_symbols()
 {
-    xc_dl_t *libcpp = NULL;
-    xc_dl_t *libart = NULL;
+    void *libcpp = NULL;
+    void *libart = NULL;
 
     //only once
     if(xc_trace_symbols_loaded) return xc_trace_symbols_status;
     xc_trace_symbols_loaded = 1;
 
-    if(xc_common_api_level >= 29) libcpp = xc_dl_open(XCC_UTIL_LIBCPP_Q, XC_DL_DYNSYM);
-    if(NULL == libcpp && NULL == (libcpp = xc_dl_open(XCC_UTIL_LIBCPP, XC_DL_DYNSYM))) goto end;
-    if(NULL == (xc_trace_libcpp_cerr = xc_dl_dynsym_object(libcpp, XCC_UTIL_LIBCPP_CERR))) goto end;
+    if(xc_common_api_level >= 29) libcpp = xdl_open(XCC_UTIL_LIBCPP_Q);
+    if(NULL == libcpp && NULL == (libcpp = xdl_open(XCC_UTIL_LIBCPP))) goto end;
+    if(NULL == (xc_trace_libcpp_cerr = xdl_sym(libcpp, XCC_UTIL_LIBCPP_CERR))) goto end;
 
-    if(xc_common_api_level >= 30) libart = xc_dl_open(XCC_UTIL_LIBART_R, XC_DL_DYNSYM);
-    if(NULL == libart && xc_common_api_level >= 29) libart = xc_dl_open(XCC_UTIL_LIBART_Q, XC_DL_DYNSYM);
-    if(NULL == libart && NULL == (libart = xc_dl_open(XCC_UTIL_LIBART, XC_DL_DYNSYM))) goto end;
-    if(NULL == (xc_trace_libart_runtime_instance = (void **)xc_dl_dynsym_object(libart, XCC_UTIL_LIBART_RUNTIME_INSTANCE))) goto end;
-    if(NULL == (xc_trace_libart_runtime_dump = (xcc_util_libart_runtime_dump_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_RUNTIME_DUMP))) goto end;
+    if(xc_common_api_level >= 30) libart = xdl_open(XCC_UTIL_LIBART_R);
+    if(NULL == libart && xc_common_api_level >= 29) libart = xdl_open(XCC_UTIL_LIBART_Q);
+    if(NULL == libart && NULL == (libart = xdl_open(XCC_UTIL_LIBART))) goto end;
+    if(NULL == (xc_trace_libart_runtime_instance = (void **)xdl_sym(libart, XCC_UTIL_LIBART_RUNTIME_INSTANCE))) goto end;
+    if(NULL == (xc_trace_libart_runtime_dump = (xcc_util_libart_runtime_dump_t)xdl_sym(libart, XCC_UTIL_LIBART_RUNTIME_DUMP))) goto end;
     if(xc_trace_is_lollipop)
     {
-        if(NULL == (xc_trace_libart_dbg_suspend = (xcc_util_libart_dbg_suspend_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_DBG_SUSPEND))) goto end;
-        if(NULL == (xc_trace_libart_dbg_resume = (xcc_util_libart_dbg_resume_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_DBG_RESUME))) goto end;
+        if(NULL == (xc_trace_libart_dbg_suspend = (xcc_util_libart_dbg_suspend_t)xdl_sym(libart, XCC_UTIL_LIBART_DBG_SUSPEND))) goto end;
+        if(NULL == (xc_trace_libart_dbg_resume = (xcc_util_libart_dbg_resume_t)xdl_sym(libart, XCC_UTIL_LIBART_DBG_RESUME))) goto end;
     }
 
     //OK
     xc_trace_symbols_status = 0;
 
  end:
-    if(NULL != libcpp) xc_dl_close(&libcpp);
-    if(NULL != libart) xc_dl_close(&libart);
+    if(NULL != libcpp)
+    {
+        xdl_close(libcpp);
+        libcpp = NULL;
+    }
+    if(NULL != libart)
+    {
+        xdl_close(libart);
+        libart = NULL;
+    }
     return xc_trace_symbols_status;
 }
 

@@ -45,6 +45,7 @@
 #include <sys/syscall.h>
 #include <sys/uio.h>
 #include <android/log.h>
+#include "xdl.h"
 #include "xcc_errno.h"
 #include "xcc_spot.h"
 #include "xcc_util.h"
@@ -54,7 +55,6 @@
 #include "xcc_util.h"
 #include "xc_crash.h"
 #include "xc_common.h"
-#include "xc_dl.h"
 #include "xc_util.h"
 #include "xc_jni.h"
 #include "xc_fallback.h"
@@ -229,8 +229,8 @@ static int xc_crash_exec_dumper(void *arg)
 static void xc_xcrash_record_java_stacktrace()
 {
     JNIEnv                           *env     = NULL;
-    xc_dl_t                          *libcpp  = NULL;
-    xc_dl_t                          *libart  = NULL;
+    void                             *libcpp  = NULL;
+    void                             *libart  = NULL;
     xcc_util_libart_thread_current_t  current = NULL;
     xcc_util_libart_thread_dump_t     dump    = NULL;
     xcc_util_libart_thread_dump2_t    dump2   = NULL;
@@ -250,19 +250,19 @@ static void xc_xcrash_record_java_stacktrace()
     if(xc_common_api_level < 21) return;
 
     //peek libc++.so
-    if(xc_common_api_level >= 29) libcpp = xc_dl_open(XCC_UTIL_LIBCPP_Q, XC_DL_DYNSYM);
-    if(NULL == libcpp && NULL == (libcpp = xc_dl_open(XCC_UTIL_LIBCPP, XC_DL_DYNSYM))) goto end;
-    if(NULL == (cerr = xc_dl_dynsym_object(libcpp, XCC_UTIL_LIBCPP_CERR))) goto end;
+    if(xc_common_api_level >= 29) libcpp = xdl_open(XCC_UTIL_LIBCPP_Q);
+    if(NULL == libcpp && NULL == (libcpp = xdl_open(XCC_UTIL_LIBCPP))) goto end;
+    if(NULL == (cerr = xdl_sym(libcpp, XCC_UTIL_LIBCPP_CERR))) goto end;
 
     //peek libart.so
-    if(xc_common_api_level >= 30) libart = xc_dl_open(XCC_UTIL_LIBART_R, XC_DL_DYNSYM);
-    if(NULL == libart && xc_common_api_level >= 29) libart = xc_dl_open(XCC_UTIL_LIBART_Q, XC_DL_DYNSYM);
-    if(NULL == libart && NULL == (libart = xc_dl_open(XCC_UTIL_LIBART, XC_DL_DYNSYM))) goto end;
-    if(NULL == (current = (xcc_util_libart_thread_current_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_THREAD_CURRENT))) goto end;
-    if(NULL == (dump = (xcc_util_libart_thread_dump_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_THREAD_DUMP)))
+    if(xc_common_api_level >= 30) libart = xdl_open(XCC_UTIL_LIBART_R);
+    if(NULL == libart && xc_common_api_level >= 29) libart = xdl_open(XCC_UTIL_LIBART_Q);
+    if(NULL == libart && NULL == (libart = xdl_open(XCC_UTIL_LIBART))) goto end;
+    if(NULL == (current = (xcc_util_libart_thread_current_t)xdl_sym(libart, XCC_UTIL_LIBART_THREAD_CURRENT))) goto end;
+    if(NULL == (dump = (xcc_util_libart_thread_dump_t)xdl_sym(libart, XCC_UTIL_LIBART_THREAD_DUMP)))
     {
 #ifndef __i386__
-        if(NULL == (dump2 = (xcc_util_libart_thread_dump2_t)xc_dl_dynsym_func(libart, XCC_UTIL_LIBART_THREAD_DUMP2))) goto end;
+        if(NULL == (dump2 = (xcc_util_libart_thread_dump2_t)xdl_sym(libart, XCC_UTIL_LIBART_THREAD_DUMP2))) goto end;
 #else
         goto end;
 #endif
@@ -284,8 +284,16 @@ static void xc_xcrash_record_java_stacktrace()
     xcc_util_write_str(xc_crash_log_fd, "\n");
 
  end:
-    if(NULL != libcpp) xc_dl_close(&libcpp);
-    if(NULL != libart) xc_dl_close(&libart);
+    if(NULL != libcpp)
+    {
+        xdl_close(libcpp);
+        libcpp = NULL;
+    }
+    if(NULL != libart)
+    {
+        xdl_close(libart);
+        libart = NULL;
+    }
 }
 
 static void *xc_crash_callback_thread(void *arg)

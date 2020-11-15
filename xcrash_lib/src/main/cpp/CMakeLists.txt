@@ -10,13 +10,21 @@ add_compile_options(
         -Werror)
 
 #######################################
+# external
+#######################################
+
+set(BSDSYSDS_PATH ../../../../external/bsdsysds)
+set(LZMA_PATH ../../../../external/lzma/C)
+set(XDL_PATH ../../../../external/xdl/xdl_lib/src/main/cpp)
+
+#######################################
 # libxcrash.so
 #######################################
 
 file(GLOB XCRASH_SRC
         xcrash/*.c
         common/*.c
-        dl/*.c)
+        ${XDL_PATH}/*.c)
 
 add_library(xcrash SHARED
         ${XCRASH_SRC})
@@ -24,7 +32,8 @@ add_library(xcrash SHARED
 target_include_directories(xcrash PUBLIC
         xcrash
         common
-        dl)
+        ${BSDSYSDS_PATH}
+        ${XDL_PATH})
 
 target_link_libraries(xcrash
         log
@@ -67,20 +76,20 @@ file(GLOB XCRASH_DUMPER_SRC
         common/*.c)
 
 set(LZME_SRC
-        lzma/7zCrc.c
-        lzma/7zCrcOpt.c
-        lzma/CpuArch.c
-        lzma/Bra.c
-        lzma/Bra86.c
-        lzma/BraIA64.c
-        lzma/Delta.c
-        lzma/Lzma2Dec.c
-        lzma/LzmaDec.c
-        lzma/Sha256.c
-        lzma/Xz.c
-        lzma/XzCrc64.c
-        lzma/XzCrc64Opt.c
-        lzma/XzDec.c)
+        ${LZMA_PATH}/7zCrc.c
+        ${LZMA_PATH}/7zCrcOpt.c
+        ${LZMA_PATH}/CpuArch.c
+        ${LZMA_PATH}/Bra.c
+        ${LZMA_PATH}/Bra86.c
+        ${LZMA_PATH}/BraIA64.c
+        ${LZMA_PATH}/Delta.c
+        ${LZMA_PATH}/Lzma2Dec.c
+        ${LZMA_PATH}/LzmaDec.c
+        ${LZMA_PATH}/Sha256.c
+        ${LZMA_PATH}/Xz.c
+        ${LZMA_PATH}/XzCrc64.c
+        ${LZMA_PATH}/XzCrc64Opt.c
+        ${LZMA_PATH}/XzDec.c)
 
 set_source_files_properties(${LZME_SRC} PROPERTIES
         COMPILE_FLAGS " \
@@ -106,7 +115,8 @@ add_executable(xcrash_dumper
 target_include_directories(xcrash_dumper PUBLIC
         xcrash_dumper
         common
-        lzma)
+        ${BSDSYSDS_PATH}
+        ${LZMA_PATH})
 
 target_link_libraries(xcrash_dumper
         log

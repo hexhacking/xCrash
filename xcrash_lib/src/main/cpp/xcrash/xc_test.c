@@ -29,10 +29,10 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <android/log.h>
+#include "xdl.h"
 #include "xcc_util.h"
 #include "xc_test.h"
 #include "xc_common.h"
-#include "xc_dl.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
@@ -43,17 +43,17 @@
 
 static void xc_test_set_abort_msg()
 {
-    xc_dl_t                           *libc          = NULL;
+    void                              *libc          = NULL;
     xcc_util_libc_set_abort_message_t  set_abort_msg = NULL;
 
-    if(xc_common_api_level >= 29) libc = xc_dl_open(XCC_UTIL_LIBC_Q, XC_DL_DYNSYM);
-    if(NULL == libc && NULL == (libc = xc_dl_open(XCC_UTIL_LIBC, XC_DL_DYNSYM))) goto end;
-    if(NULL == (set_abort_msg = (xcc_util_libc_set_abort_message_t)xc_dl_dynsym_func(libc, XCC_UTIL_LIBC_SET_ABORT_MSG))) goto end;
+    if(xc_common_api_level >= 29) libc = xdl_open(XCC_UTIL_LIBC_Q);
+    if(NULL == libc && NULL == (libc = xdl_open(XCC_UTIL_LIBC))) goto end;
+    if(NULL == (set_abort_msg = (xcc_util_libc_set_abort_message_t)xdl_sym(libc, XCC_UTIL_LIBC_SET_ABORT_MSG))) goto end;
 
     set_abort_msg(XC_TEST_ABORT_MSG);
 
  end:
-    if(NULL != libc) xc_dl_close(&libc);
+    if(NULL != libc) xdl_close(libc);
 }
 
 #pragma clang optimize off
