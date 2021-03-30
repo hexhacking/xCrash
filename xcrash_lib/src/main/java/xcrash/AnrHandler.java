@@ -142,7 +142,7 @@ class AnrHandler {
 
         //check process error state
         if (this.checkProcessState) {
-            if (!Util.checkProcessAnrState(this.ctx, anrTimeoutMs)) {
+            if (!Util.isProcessNotResponding(this.ctx)) {
                 return;
             }
         }
