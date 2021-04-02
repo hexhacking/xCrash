@@ -43,6 +43,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import static android.content.Context.ACTIVITY_SERVICE;
+
 class Util {
 
     private Util() {
@@ -240,29 +242,38 @@ class Util {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    static boolean checkProcessAnrState(Context ctx, long timeoutMs) {
-        ActivityManager am = (ActivityManager) ctx.getSystemService(Context.ACTIVITY_SERVICE);
-        if (am == null) return false;
-
+    static boolean isProcessNotResponding(Context context) {
+        ActivityManager am = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
+        if (null == am) {
+            return false;
+        }
+        List<ActivityManager.RunningAppProcessInfo> runningAppProcesses = am.getRunningAppProcesses();
+        if (null == runningAppProcesses) {
+            return false;
+        }
         int pid = android.os.Process.myPid();
-        long poll = timeoutMs / 500;
-        for (int i = 0; i < poll; i++) {
-            List<ActivityManager.ProcessErrorStateInfo> processErrorList = am.getProcessesInErrorState();
-            if (processErrorList != null) {
-                for (ActivityManager.ProcessErrorStateInfo errorStateInfo : processErrorList) {
-                    if (errorStateInfo.pid == pid && errorStateInfo.condition == ActivityManager.ProcessErrorStateInfo.NOT_RESPONDING) {
-                        return true;
-                    }
-                }
+        for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : runningAppProcesses) {
+            if (null == runningAppProcessInfo) {
+                continue;
             }
-
-            try {
-                Thread.sleep(500);
-            } catch (Exception ignored) {
+            if (pid == runningAppProcessInfo.pid) {
+                return false;
             }
         }
-
-        return false;
+        List<ActivityManager.ProcessErrorStateInfo> processesErrorState = am.getProcessesInErrorState();
+        if (null == processesErrorState) {
+            return false;
+        }
+        for (ActivityManager.ProcessErrorStateInfo processErrorStateInfo : processesErrorState) {
+            if (null == processErrorStateInfo) {
+                continue;
+            }
+            if (pid != processErrorStateInfo.pid) {
+                continue;
+            }
+            return processErrorStateInfo.condition != ActivityManager.ProcessErrorStateInfo.CRASHED;
+        }
+        return true;
     }
 
     static String getLogHeader(Date startTime, Date crashTime, String crashType, String appId, String appVersion) {
