@@ -112,19 +112,11 @@ Tombstone 文件默认将被写入到 `Context#getFilesDir() + "/tombstones"` �
 在 [xcrash_sample](xcrash_sample) 文件夹中，有一个更实际和复杂的示例 app。
 
 
-## 官方仓库
-
-* GitHub : https://github.com/hexhacking/xCrash
-* GitLab : https://gitlab.com/hexhacking/xCrash
-* Gitee  : https://gitee.com/hexhacking/xCrash
-
-
 ## 技术支持
 
-1. 查看 [xcrash-sample](xcrash_sample)。
-2. 在 [GitHub issues](https://github.com/hexhacking/xCrash/issues) 交流。
-3. 邮件: <a href="mailto:caikelun@gmail.com">caikelun@gmail.com</a>
-4. QQ 群: 603635869。
+* [GitHub Issues](https://github.com/hexhacking/xCrash/issues)
+* [GitHub Discussions](https://github.com/hexhacking/xCrash/discussions)
+* [Telegram Public Group](https://t.me/android_native_geeks)
 
 
 ## 贡献
