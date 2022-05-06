@@ -230,7 +230,7 @@ class NativeHandler {
 
         //check process ANR state
         if (NativeHandler.getInstance().anrCheckProcessState) {
-            if (!Util.checkProcessAnrState(NativeHandler.getInstance().ctx, NativeHandler.getInstance().anrTimeoutMs)) {
+            if (!Util.isProcessNotResponding(NativeHandler.getInstance().ctx)) {
                 FileManager.getInstance().recycleLogFile(new File(logPath));
                 return; //not an ANR
             }
